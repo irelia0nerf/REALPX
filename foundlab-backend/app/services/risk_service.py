@@ -15,48 +15,64 @@ from app.models.risk import (
 
 class SentinelaService:
     def __init__(self):
-        self.risk_triggers_collection: AsyncIOMotorCollection = get_collection("risk_triggers")
-        self.risk_assessments_collection: AsyncIOMotorCollection = get_collection("risk_assessments")
+        self.risk_triggers_collection: Optional[AsyncIOMotorCollection] = None
+        self.risk_assessments_collection: Optional[AsyncIOMotorCollection] = None
+
+    def _get_triggers_collection(self) -> AsyncIOMotorCollection:
+        if self.risk_triggers_collection is None:
+            self.risk_triggers_collection = get_collection("risk_triggers")
+        return self.risk_triggers_collection
+
+    def _get_assessments_collection(self) -> AsyncIOMotorCollection:
+        if self.risk_assessments_collection is None:
+            self.risk_assessments_collection = get_collection("risk_assessments")
+        return self.risk_assessments_collection
 
     async def create_risk_trigger(self, trigger_data: Dict[str, Any]) -> Optional[RiskTrigger]:
-        if await self.risk_triggers_collection.find_one({"name": trigger_data["name"]}):
+        collection = self._get_triggers_collection()
+        if await collection.find_one({"name": trigger_data["name"]}):
             return None
 
         now = datetime.utcnow()
         trigger_data["created_at"] = now
         trigger_data["updated_at"] = now
 
-        insert_result = await self.risk_triggers_collection.insert_one(trigger_data)
-        new_trigger = await self.risk_triggers_collection.find_one({"_id": insert_result.inserted_id})
+        insert_result = await collection.insert_one(trigger_data)
+        new_trigger = await collection.find_one({"_id": insert_result.inserted_id})
         return RiskTrigger(**new_trigger)
 
     async def get_all_risk_triggers(self) -> List[RiskTrigger]:
+        collection = self._get_triggers_collection()
         triggers = []
-        async for trigger in self.risk_triggers_collection.find({"is_active": True}):
+        async for trigger in collection.find({"is_active": True}):
             triggers.append(RiskTrigger(**trigger))
         return triggers
 
     async def get_risk_trigger_by_name(self, name: str) -> Optional[RiskTrigger]:
-        trigger = await self.risk_triggers_collection.find_one({"name": name})
+        collection = self._get_triggers_collection()
+        trigger = await collection.find_one({"name": name})
         return RiskTrigger(**trigger) if trigger else None
 
     async def update_risk_trigger(self, name: str, update_data: Dict[str, Any]) -> Optional[RiskTrigger]:
         update_data.pop("name", None)
         update_data["updated_at"] = datetime.utcnow()
-        update_result = await self.risk_triggers_collection.update_one({"name": name}, {"$set": update_data})
+        collection = self._get_triggers_collection()
+        update_result = await collection.update_one({"name": name}, {"$set": update_data})
         if update_result.modified_count == 0:
-            if await self.risk_triggers_collection.find_one({"name": name}):
-                return RiskTrigger(**(await self.risk_triggers_collection.find_one({"name": name})))
+            if await collection.find_one({"name": name}):
+                return RiskTrigger(**(await collection.find_one({"name": name})))
             return None
-        updated_trigger = await self.risk_triggers_collection.find_one({"name": name})
+        updated_trigger = await collection.find_one({"name": name})
         return RiskTrigger(**updated_trigger) if updated_trigger else None
 
     async def delete_risk_trigger(self, name: str) -> int:
-        delete_result = await self.risk_triggers_collection.delete_one({"name": name})
+        collection = self._get_triggers_collection()
+        delete_result = await collection.delete_one({"name": name})
         return delete_result.deleted_count
 
     async def get_latest_risk_assessment_for_entity(self, entity_id: str) -> Optional[RiskAssessmentResult]:
-        latest_assessment = await self.risk_assessments_collection.find_one(
+        assessment_collection = self._get_assessments_collection()
+        latest_assessment = await assessment_collection.find_one(
             {"entity_id": entity_id}, sort=[("created_at", -1)]
         )
         return RiskAssessmentResult(**latest_assessment) if latest_assessment else None
@@ -147,6 +163,7 @@ class SentinelaService:
             summary_message=summary_message,
         ).model_dump(by_alias=True)
 
-        insert_result = await self.risk_assessments_collection.insert_one(assessment_data)
-        new_assessment = await self.risk_assessments_collection.find_one({"_id": insert_result.inserted_id})
+        assessment_collection = self._get_assessments_collection()
+        insert_result = await assessment_collection.insert_one(assessment_data)
+        new_assessment = await assessment_collection.find_one({"_id": insert_result.inserted_id})
         return RiskAssessmentResult(**new_assessment)

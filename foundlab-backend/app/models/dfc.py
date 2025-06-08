@@ -108,6 +108,16 @@ class DynamicFlagUpdate(BaseModel):
     category: Optional[str] = None
 
 
+class FlagEvaluationResult(BaseModel):
+    """Represents the result of evaluating a dynamic flag for an entity."""
+
+    flag_name: str = Field(description="Name of the evaluated flag.")
+    value: Any = Field(description="Resolved value for the flag.")
+    is_active: bool = Field(description="Whether the flag is considered active.")
+    weight: float = Field(0.0, description="Weight applied to this flag.")
+    reason: str = Field(description="Explanation of how the flag was evaluated.")
+
+
 class FlagApplicationInput(BaseModel):
     """Input for applying DFC flags to a specific entity or context."""
 
