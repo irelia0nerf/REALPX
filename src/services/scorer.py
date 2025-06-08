@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 from src.models.schemas import WalletData, ScoreResponse
@@ -39,7 +39,7 @@ async def compute_score(data: WalletData) -> ScoreResponse:
                 "score": score,
                 "tier": tier,
                 "flags": flags,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
             }
         )
     except Exception:
