@@ -17,7 +17,12 @@ from app.models.sherlock import (
 
 class SherlockService:
     def __init__(self):
-        self.validation_results_collection: AsyncIOMotorCollection = get_collection("sherlock_results")
+        self.validation_results_collection: Optional[AsyncIOMotorCollection] = None
+
+    def _get_collection(self) -> AsyncIOMotorCollection:
+        if self.validation_results_collection is None:
+            self.validation_results_collection = get_collection("sherlock_results")
+        return self.validation_results_collection
 
     async def _mock_chainalysis_check(self, entity_id: str, entity_type: str) -> ExternalProviderResult:
         flags: List[ComplianceFlag] = []
@@ -140,19 +145,21 @@ class SherlockService:
             suggested_action=suggested_action,
         )
 
-        inserted_result = await self.validation_results_collection.insert_one(result.model_dump(by_alias=True))
+        collection = self._get_collection()
+        inserted_result = await collection.insert_one(result.model_dump(by_alias=True))
         if not inserted_result.inserted_id:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to save Sherlock validation result.",
             )
 
-        new_result = await self.validation_results_collection.find_one({"_id": inserted_result.inserted_id})
+        new_result = await collection.find_one({"_id": inserted_result.inserted_id})
         return SherlockValidationResult(**new_result)
 
     async def get_validation_results_by_entity_id(self, entity_id: str) -> List[SherlockValidationResult]:
+        collection = self._get_collection()
         results = []
-        cursor = self.validation_results_collection.find({"entity_id": entity_id}).sort("created_at", -1)
+        cursor = collection.find({"entity_id": entity_id}).sort("created_at", -1)
         async for result_doc in cursor:
             results.append(SherlockValidationResult(**result_doc))
         return results

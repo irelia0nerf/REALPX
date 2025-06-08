@@ -16,7 +16,12 @@ class SigilMeshService:
     def __init__(self):
         self.score_service = ScoreLabService()
         self.sentinela_service = SentinelaService()
-        self.nft_metadata_collection: AsyncIOMotorCollection = get_collection("nft_metadata")
+        self.nft_metadata_collection: Optional[AsyncIOMotorCollection] = None
+
+    def _get_collection(self) -> AsyncIOMotorCollection:
+        if self.nft_metadata_collection is None:
+            self.nft_metadata_collection = get_collection("nft_metadata")
+        return self.nft_metadata_collection
 
     async def generate_nft_metadata(
         self,
@@ -99,7 +104,8 @@ class SigilMeshService:
             background_color=str(background_color),
         )
 
-        await self.nft_metadata_collection.insert_one(
+        collection = self._get_collection()
+        await collection.insert_one(
             {
                 "entity_id": entity_id,
                 "score_id": score_id,

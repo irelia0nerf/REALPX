@@ -7,7 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorCollection
 
 from app.database import get_collection
 from app.models.gas_monitor import (
-    GasConsumptionAnomaly,
+    GasPatternAnomaly,
     GasConsumptionRecord,
     GasMonitorAnalysisResult,
     IngestGasConsumptionInput,
@@ -16,21 +16,28 @@ from app.models.gas_monitor import (
 
 class GasMonitorService:
     def __init__(self):
-        self.gas_records_collection: AsyncIOMotorCollection = get_collection("gas_records")
+        self.gas_records_collection: Optional[AsyncIOMotorCollection] = None
+
+    def _get_collection(self) -> AsyncIOMotorCollection:
+        if self.gas_records_collection is None:
+            self.gas_records_collection = get_collection("gas_records")
+        return self.gas_records_collection
 
     async def ingest_record(self, record_data: Dict[str, Any]) -> GasConsumptionRecord:
-        insert_result = await self.gas_records_collection.insert_one(record_data)
+        collection = self._get_collection()
+        insert_result = await collection.insert_one(record_data)
         if not insert_result.inserted_id:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to insert gas consumption record.",
             )
-        new_record = await self.gas_records_collection.find_one({"_id": insert_result.inserted_id})
+        new_record = await collection.find_one({"_id": insert_result.inserted_id})
         return GasConsumptionRecord(**new_record)
 
     async def get_records_by_entity(self, entity_id: str, limit: int = 10, skip: int = 0) -> List[GasConsumptionRecord]:
+        collection = self._get_collection()
         records = []
-        cursor = self.gas_records_collection.find({"entity_id": entity_id}).sort("timestamp", -1).skip(skip).limit(limit)
+        cursor = collection.find({"entity_id": entity_id}).sort("timestamp", -1).skip(skip).limit(limit)
         async for record in cursor:
             records.append(GasConsumptionRecord(**record))
         return records
@@ -39,7 +46,8 @@ class GasMonitorService:
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=lookback_days)
 
-        records_cursor = self.gas_records_collection.find(
+        collection = self._get_collection()
+        records_cursor = collection.find(
             {
                 "entity_id": entity_id,
                 "timestamp": {"$gte": start_date, "$lte": end_date},
@@ -59,13 +67,13 @@ class GasMonitorService:
         total_gas_consumed = fsum([r.gas_used for r in records_list])
         avg_gas_per_transaction = total_gas_consumed / len(records_list) if records_list else 0
 
-        anomalies: List[GasConsumptionAnomaly] = []
+        anomalies: List[GasPatternAnomaly] = []
         summary = f"Analysis for entity '{entity_id}' over {lookback_days} days finished. "
 
         threshold_multiplier = 4.0
         for record in records_list:
             if record.gas_used > avg_gas_per_transaction * threshold_multiplier and record.gas_used > 100_000:
-                anom = GasConsumptionAnomaly(
+                anom = GasPatternAnomaly(
                     entity_id=entity_id,
                     anomaly_type="high_gas_spike",
                     score=min(1.0, (record.gas_used / (avg_gas_per_transaction * threshold_multiplier)) - 1.0),

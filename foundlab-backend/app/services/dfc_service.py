@@ -15,35 +15,45 @@ from app.models.dfc import (
 
 class DFCService:
     def __init__(self):
-        self.flags_collection: AsyncIOMotorCollection = get_collection("flags")
+        self.flags_collection: Optional[AsyncIOMotorCollection] = None
+
+    def _get_collection(self) -> AsyncIOMotorCollection:
+        if self.flags_collection is None:
+            self.flags_collection = get_collection("flags")
+        return self.flags_collection
 
     async def create_flag_definition(self, flag_data: Dict[str, Any]) -> Optional[FlagDefinition]:
-        if await self.flags_collection.find_one({"name": flag_data["name"]}):
+        collection = self._get_collection()
+        if await collection.find_one({"name": flag_data["name"]}):
             return None
-        insert_result = await self.flags_collection.insert_one(flag_data)
-        new_flag = await self.flags_collection.find_one({"_id": insert_result.inserted_id})
+        insert_result = await collection.insert_one(flag_data)
+        new_flag = await collection.find_one({"_id": insert_result.inserted_id})
         return FlagDefinition(**new_flag)
 
     async def get_all_flag_definitions(self) -> List[FlagDefinition]:
+        collection = self._get_collection()
         flags = []
-        async for flag in self.flags_collection.find({}):
+        async for flag in collection.find({}):
             flags.append(FlagDefinition(**flag))
         return flags
 
     async def get_flag_definition_by_name(self, name: str) -> Optional[FlagDefinition]:
-        flag = await self.flags_collection.find_one({"name": name})
+        collection = self._get_collection()
+        flag = await collection.find_one({"name": name})
         return FlagDefinition(**flag) if flag else None
 
     async def update_flag_definition(self, name: str, update_data: Dict[str, Any]) -> Optional[FlagDefinition]:
+        collection = self._get_collection()
         update_data.pop("name", None)
-        update_result = await self.flags_collection.update_one({"name": name}, {"$set": update_data})
+        update_result = await collection.update_one({"name": name}, {"$set": update_data})
         if update_result.modified_count == 0:
             return None
-        updated_flag = await self.flags_collection.find_one({"name": name})
+        updated_flag = await collection.find_one({"name": name})
         return FlagDefinition(**updated_flag) if updated_flag else None
 
     async def delete_flag_definition(self, name: str) -> int:
-        delete_result = await self.flags_collection.delete_one({"name": name})
+        collection = self._get_collection()
+        delete_result = await collection.delete_one({"name": name})
         return delete_result.deleted_count
 
     def _evaluate_rule(self, rule: dict, metadata: Dict[str, Any]) -> bool:
