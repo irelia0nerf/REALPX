@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  db:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+  api:
+    build: .
+    environment:
+      - MONGO_URI=mongodb://db:27017
+      - MONGO_DB=becktotheend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
