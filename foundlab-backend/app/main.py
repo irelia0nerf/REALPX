@@ -42,3 +42,4 @@ app.include_router(sherlock_router.router, prefix="/sherlock", tags=["Sherlock"]
 app.include_router(nft_router.router, prefix="/nft", tags=["SigilMesh"])
 app.include_router(risk_router.router, prefix="/sentinela", tags=["Sentinela"])
 app.include_router(gas_monitor_router.router, prefix="/gasmonitor", tags=["GasMonitor"])
+app.include_router(cryptopix_analyzer.router, prefix="cryptopix_analyzer", tags=["cryptopix_analyzer"])
