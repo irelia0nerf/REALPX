@@ -849,6 +849,65 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "CryptoPix Analyzer",
+      "item": [
+        {
+          "name": "POST Analyze Crypto-to-Pix Transaction (Clean)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaction_id\": \"example_txn_001\",\n  \"crypto_details\": {\n    \"transaction_hash\": \"0xabc123\",\n    \"blockchain\": \"Ethereum\",\n    \"from_address\": \"test_clean_wallet_0x123abcef\",\n    \"to_address\": \"0xExchangeAddress\",\n    \"asset_ticker\": \"ETH\",\n    \"amount_crypto\": 0.5,\n    \"timestamp\": \"2024-01-01T10:00:00Z\"\n  },\n  \"pix_details\": {\n    \"pix_key\": \"12345678900\",\n    \"pix_key_type\": \"CPF\",\n    \"receiver_name\": \"Joao da Silva\",\n    \"receiver_document\": \"12345678900\",\n    \"bank_name\": \"Banco Inter\",\n    \"bank_ispb\": \"12345678\",\n    \"amount_fiat\": 5000.0\n  },\n  \"user_id\": \"user_123\",\n  \"ip_address\": \"192.168.1.1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cryptopix/analyze",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cryptopix",
+                "analyze"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Analyze Crypto-to-Pix Transaction (High Risk)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaction_id\": \"example_txn_002\",\n  \"crypto_details\": {\n    \"transaction_hash\": \"0xdef456\",\n    \"blockchain\": \"Ethereum\",\n    \"from_address\": \"sanctioned_entity_mock_test\",\n    \"to_address\": \"0xReceiverExchangeAddress\",\n    \"asset_ticker\": \"USDT\",\n    \"amount_crypto\": 5000.0,\n    \"timestamp\": \"2024-01-01T11:00:00Z\"\n  },\n  \"pix_details\": {\n    \"pix_key\": \"09876543211\",\n    \"pix_key_type\": \"CPF\",\n    \"receiver_name\": \"Maria de Souza\",\n    \"receiver_document\": \"09876543211\",\n    \"bank_name\": \"Banco do Brasil\",\n    \"bank_ispb\": \"87654321\",\n    \"amount_fiat\": 15000.0\n  },\n  \"user_id\": \"user_456\",\n  \"ip_address\": \"203.0.113.5\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cryptopix/analyze",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cryptopix",
+                "analyze"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "event": [

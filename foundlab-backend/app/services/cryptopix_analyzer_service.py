@@ -90,21 +90,21 @@ class CryptoPixAnalyzerService:
         overall_risk_level = sentinela_result.overall_risk_level
         suggested_action = "APPROVE"
         message = "Transaction appears low risk."
-        if overall_risk_level == RiskLevel.CRITICAL: [cite: 28]
+        if overall_risk_level == RiskLevel.CRITICAL:
             suggested_action = "REJECT"
             message = "Transaction rejected due to critical risk factors."
-        elif overall_risk_level == RiskLevel.HIGH: [cite: 29]
+        elif overall_risk_level == RiskLevel.HIGH:
             suggested_action = "REVIEW_MANUAL"
             message = "Transaction requires manual review due to high risk factors."
         elif overall_risk_level == RiskLevel.MEDIUM:
             suggested_action = "REVIEW_MANUAL"
-            message = "Transaction flagged for manual review due to medium risk." [cite: 30]
+            message = "Transaction flagged for manual review due to medium risk."
         
-        if sherlock_result.suggested_action == "block": [cite: 31]
+        if sherlock_result.suggested_action == "block":
             suggested_action = "REJECT"
             overall_risk_level = RiskLevel.CRITICAL
             message = "Transaction rejected: Crypto address is sanctioned or highly illicit."
-        elif sherlock_result.suggested_action == "review_manual" and suggested_action == "APPROVE": [cite: 32]
+        elif sherlock_result.suggested_action == "review_manual" and suggested_action == "APPROVE":
             suggested_action = "REVIEW_MANUAL"
             message = "Transaction flagged for manual review: Crypto address needs further check."
 
