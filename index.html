@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundLab Nexus - Demonstração Interativa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <script type="importmap">
+    {
+        "imports": {
+        "@google/genai": "https://esm.sh/@google/genai@^0.12.0"
+        }
+    }
+    </script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: false,
+            theme: 'base', // Using base theme for more control with CSS vars
+            themeVariables: {
+                primaryColor: getComputedStyle(document.documentElement).getPropertyValue('--corporate-background').trim(),
+                primaryTextColor: getComputedStyle(document.documentElement).getPropertyValue('--corporate-text-primary').trim(),
+                primaryBorderColor: getComputedStyle(document.documentElement).getPropertyValue('--corporate-border').trim(),
+                lineColor: getComputedStyle(document.documentElement).getPropertyValue('--corporate-primary-blue').trim(),
+                textColor: getComputedStyle(document.documentElement).getPropertyValue('--corporate-text-secondary').trim(),
+                fontSize: '11px', // Smaller base font for diagrams
+                fontFamily: getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim()
+            }
+        });
+        window.mermaid = mermaid; 
+    </script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="corporate-font">
+    <div id="boot-screen">
+        <div class="boot-logo-container">
+            <svg class="boot-logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z M50 10 L50 50 L10 30 M50 50 L10 70 M50 50 L90 30 M50 50 L90 70" fill="none" stroke="currentColor" stroke-width="5"/></svg>
+            <span class="boot-logo-text">FoundLab Nexus</span>
+        </div>
+        <div id="boot-message">Initializing FoundLab Core...</div>
+        <div class="spinner"></div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <header id="app-header">
+            <div class="logo-container">
+                <svg class="header-logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z M50 10 L50 50 L10 30 M50 50 L10 70 M50 50 L90 30 M50 50 L90 70" stroke-width="3"/></svg>
+                <span class="header-logo-text">FoundLab Nexus</span>
+            </div>
+            <nav class="navigation-buttons">
+                <button id="nav-home-button" class="nav-button">Início</button>
+                <button id="nav-demo-button" class="nav-button">DEMO</button>
+                <button id="nav-catalog-button" class="nav-button">Explorar Soluções</button>
+                <button id="nav-documents-button" class="nav-button">Documentos</button> 
+            </nav>
+        </header>
+        <main id="app-content">
+            <!-- Content will be rendered here by JavaScript -->
+        </main>
+        
+        <!-- Product Modal -->
+        <div id="product-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+            <div id="product-modal-content-wrapper" class="modal-content-wrapper">
+                 <button id="product-modal-close-button-top" class="modal-close-button-top" aria-label="Fechar modal">&times;</button>
+                <div id="product-modal-content" class="modal-inner-content">
+                    <!-- Product Modal content injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Core Module Detail Modal -->
+        <div id="core-module-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="core-module-modal-title">
+            <div id="core-module-modal-content-wrapper" class="modal-content-wrapper large">
+                 <button id="core-module-modal-close-button-top" class="modal-close-button-top" aria-label="Fechar modal">&times;</button>
+                <div id="core-module-modal-content" class="modal-inner-content">
+                    <!-- Core Module Detail Modal content injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Impact Comparison Modal -->
+        <div id="impact-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="impact-modal-title-main">
+            <div id="impact-modal-content-wrapper" class="modal-content-wrapper x-large">
+                <button id="impact-modal-close-button-top" class="modal-close-button-top" aria-label="Fechar modal">&times;</button>
+                <div id="impact-modal-content" class="modal-inner-content">
+                    <!-- Impact Comparison Modal content injected here -->
+                </div>
+            </div>
+        </div>
+
+        <div id="decision-loader-overlay" class="hidden">
+            <div class="loader-content">
+                <div class="spinner-decision"></div>
+                <p>Processando decisão...</p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+        <audio id="alert-sound" src="./assets/alert.mp3" preload="auto"></audio>
+        <footer id="app-footer">
+            <span class="powered-by">Powered by FoundLab Core</span>
+            <span class="slogan">Infraestrutura de confiança para decisões críticas.</span>
+        </footer>
+    </div>
+    <script type="module" src="index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
