@@ -6,8 +6,14 @@ from datetime import datetime, timedelta
 from app.models.dfc import RuleCondition
 from app.models.risk import RiskLevel
 
+
 @pytest.mark.asyncio
-async def test_analyze_cryptopix_transaction_clean(client: AsyncClient, create_flag_definition, create_risk_trigger, faker_instance: Faker):
+async def test_analyze_cryptopix_transaction_clean(
+    client: AsyncClient,
+    create_flag_definition,
+    create_risk_trigger,
+    faker_instance: Faker,
+):
     """Testa a análise de uma transação Crypto-Pix limpa."""
     entity_id = "test_clean_wallet_0x123abcef"  # Isso aciona um mock limpo do Sherlock
     pix_key = faker_instance.ssn()
@@ -16,7 +22,13 @@ async def test_analyze_cryptopix_transaction_clean(client: AsyncClient, create_f
     # Cria algumas flags DFC
     await create_flag_definition(
         name="is_foundlab_member",
-        rules=[{"field": "is_foundlab_registered", "condition": RuleCondition.EQ.value, "value": True}],
+        rules=[
+            {
+                "field": "is_foundlab_registered",
+                "condition": RuleCondition.EQ.value,
+                "value": True,
+            }
+        ],
         weight=0.5,
     )
 
@@ -56,30 +68,44 @@ async def test_analyze_cryptopix_transaction_clean(client: AsyncClient, create_f
     assert result["sherlock_result_summary"]["overall_sanction_status"] == "CLEAN"
     assert len(result["triggered_rules"]) == 0
 
+
 @pytest.mark.asyncio
-async def test_analyze_cryptopix_transaction_high_risk_scenario(client: AsyncClient, create_flag_definition, create_risk_trigger, faker_instance: Faker):
+async def test_analyze_cryptopix_transaction_high_risk_scenario(
+    client: AsyncClient,
+    create_flag_definition,
+    create_risk_trigger,
+    faker_instance: Faker,
+):
     """Testa a análise de uma transação de alto risco."""
     entity_id_crypto = "sanctioned_entity_mock_test"
     transaction_id = faker_instance.uuid4()
 
-    # Cria flags DFC 
+    # Cria flags DFC
     await create_flag_definition(
         name="high_risk_country",
-        rules=[{"field": "country_iso", "condition": RuleCondition.EQ.value, "value": "IR"}],
+        rules=[
+            {"field": "country_iso", "condition": RuleCondition.EQ.value, "value": "IR"}
+        ],
         weight=0.9,
     )
     await create_flag_definition(
         name="large_transaction_volume",
-        rules=[{"field": "amount_fiat", "condition": RuleCondition.GTE.value, "value": 10000.0}],
+        rules=[
+            {
+                "field": "amount_fiat",
+                "condition": RuleCondition.GTE.value,
+                "value": 10000.0,
+            }
+        ],
         weight=0.7,
     )
 
-    # Cria gatilhos Sentinela 
+    # Cria gatilhos Sentinela
     await create_risk_trigger(
         name="critical_sanction_trigger",
         trigger_type="flag_presence",
         flag_name="sherlock_sanction_flag_sanctioned",
-        risk_level=RiskLevel.CRITICAL
+        risk_level=RiskLevel.CRITICAL,
     )
 
     input_data = {
